@@ -14,6 +14,9 @@ app.use(
     origin: process.env.APP_URL,
   })
 );
+app.set('trust proxy', 1)
+
+const isDev = process.env.BASE_URL.includes('localhost')
 
 app.use(express.json());
 app.use(
@@ -21,8 +24,8 @@ app.use(
     name: "session",
     keys: [process.env.SESSION_SECRET || "secret"],
     maxAge: 24 * 60 * 60 * 1000 * 15, // 15 day
-    sameSite: "none",
-    secure: true,
+    sameSite: isDev ? 'lax' : "none",
+    secure: !isDev,
   })
 );
 app.use(passport.initialize());

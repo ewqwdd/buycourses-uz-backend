@@ -73,6 +73,8 @@ router.get("/auth", (req, res, next) => {
   if (req.query.hash) {
     req.body.hash = req.query.hash; // Копируем hash из query в body
   }
+  res.setHeader("Access-Control-Allow-Credentials", true);
+  res.setHeader('Access-Control-Allow-Origin', process.env.APP_URL);
   passport.authenticate("email-link", { session: true }, (err, user, info) => {
     if (err) return next(err);
     if (!user) return res.status(400).send({ message: info.message });
