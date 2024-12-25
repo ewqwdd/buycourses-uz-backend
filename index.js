@@ -21,6 +21,8 @@ app.use(
     name: "session",
     keys: [process.env.SESSION_SECRET || "secret"],
     maxAge: 24 * 60 * 60 * 1000 * 15, // 15 day
+    sameSite: "none",
+    secure: true,
   })
 );
 app.use(passport.initialize());
