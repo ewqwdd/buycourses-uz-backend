@@ -1,12 +1,66 @@
 const express = require("express");
 const cors = require("cors");
+const passport = require("passport");
+const session = require("cookie-session");
+const LocalStrategy = require("passport-local").Strategy;
 const { initializeDatabase } = require("./sequelize/sequelize");
+const { User } = require("./models/User");
+const { generateLink } = require("./lib/generateLink");
+const { sendLink } = require("./lib/mailer");
+const { hashPassword, verifyPassword } = require("./lib/passwords");
 const app = express();
 require("dotenv").config();
 
 app.use(cors());
+app.use(express.json());
+app.use(
+  session({
+    name: "session",
+    keys: [process.env.SESSION_SECRET || "secret"],
+    maxAge: 24 * 60 * 60 * 1000 * 15, // 15 day
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 initializeDatabase();
+
+// Passport configuration
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findByPk(id);
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+});
+
+passport.use(
+  "email-link",
+  new LocalStrategy(
+    { usernameField: "hash", passReqToCallback: true, passwordField: "hash" },
+    async (req, hash, _, done) => {
+      try {
+        const user = await User.findOne({ where: { emailLink: hash } });
+        if (!user) {
+          return done(null, false, { message: "Invalid link or user" });
+        }
+
+        user.emailLink = null; // Инвалидируем ссылку после использования
+        await user.save();
+        return done(null, user);
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+app.use(require('./routes/defaultRouter'));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
