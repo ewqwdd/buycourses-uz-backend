@@ -56,12 +56,12 @@ router.post("/login", async (req, res) => {
     }
 
     const { link, hash } = generateLink();
-    sendLink(email, link);
 
     user.emailLink = hash;
     await user.save();
+    sendLink(email, link);
 
-    return res.status(200).send();
+    return res.status(200).json({ success: true });
   } catch (error) {
     console.error("Error during login:", error);
     return res.status(500).json({ message: "Internal server error" });
