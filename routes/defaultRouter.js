@@ -96,11 +96,21 @@ router.post("/resend", async (req, res) => {
     if (!user) {
       return res.status(400).send({ message: "Invalid email" });
     }
-    sendLink(email, `${process.env.BASE_URL}/auth/?hash=${user.emailLink}`);
+    sendLink(email, `${process.env.APP_URL}/email-confirm/?hash=${user.emailLink}`);
+    return res.status(200).json({ success: true });
   } catch (error) {
     console.error("Error during resend:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
+});
+
+// Logout endpoint
+router.post("/logout", (req, res) => {
+  req.logOut()
+  res.clearCookie('session')
+  res.clearCookie('session.sig')
+  res.status(200).json({ success: true });
+  return
 });
 
 // User information endpoint
@@ -113,6 +123,7 @@ router.get("/me", (req, res) => {
     id: req.user.id,
     email: req.user.email,
     createdAt: req.user.createdAt,
+    balance: req.user.balance,
   });
 });
 

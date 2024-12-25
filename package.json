@@ -19,6 +19,7 @@
     "passport": "^0.5.3",
     "passport-local": "^1.0.0",
     "pg": "^8.13.1",
+    "react-hot-toast": "^2.4.1",
     "sequelize": "^6.37.5",
     "uuid": "^11.0.3"
   }

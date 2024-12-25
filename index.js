@@ -5,13 +5,16 @@ const session = require("cookie-session");
 const LocalStrategy = require("passport-local").Strategy;
 const { initializeDatabase } = require("./sequelize/sequelize");
 const { User } = require("./models/User");
-const { generateLink } = require("./lib/generateLink");
-const { sendLink } = require("./lib/mailer");
-const { hashPassword, verifyPassword } = require("./lib/passwords");
 const app = express();
 require("dotenv").config();
 
-app.use(cors());
+app.use(
+  cors({
+    credentials: true,
+    origin: process.env.APP_URL,
+  })
+);
+
 app.use(express.json());
 app.use(
   session({
@@ -60,7 +63,7 @@ passport.use(
   )
 );
 
-app.use(require('./routes/defaultRouter'));
+app.use(require("./routes/defaultRouter"));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
