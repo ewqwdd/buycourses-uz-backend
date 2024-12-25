@@ -8,7 +8,7 @@ require("dotenv").config();
 
 const router = express.Router();
 // Registration endpoint
-router.post("/register", async (req, res) => {
+router.post("/register", async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -20,16 +20,27 @@ router.post("/register", async (req, res) => {
     if (userExists) {
       return res.status(400).send({ message: "User with this email already exists" });
     }
+
+    res.setHeader("Access-Control-Allow-Credentials", true);
+    res.setHeader("Access-Control-Allow-Origin", process.env.APP_URL);
     const hashedPassword = await hashPassword(password);
 
-    // Create a new user
-    const user = new User({ email, password: hashedPassword });
-    const { link, hash } = generateLink();
-    sendLink(email, link);
-    user.emailLink = hash;
-    await user.save();
+    const user = await User.create({ email, password: hashedPassword });
 
-    return res.status(201).json({ success: true });
+    req.logIn(user, (err) => {
+      if (err) {
+        console.error("Error during login:", err);
+        return next(err);
+      }
+
+      return res.status(201).json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+        },
+      });
+    });
   } catch (error) {
     console.error("Unable to connect to the database:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -37,35 +48,27 @@ router.post("/register", async (req, res) => {
 });
 
 // Login endpoint
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).send({ message: "Email and password are required" });
-    }
-
-    const user = await User.findOne({ where: { email } });
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) return next(err);
     if (!user) {
-      return res.status(400).send({ message: "Invalid email or password" });
+      return res.status(401).json({ message: info.message });
     }
-
-    const isPasswordValid = await verifyPassword(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(400).send({ message: "Invalid email or password" });
-    }
-
-    const { link, hash } = generateLink();
-
-    user.emailLink = hash;
-    await user.save();
-    sendLink(email, link);
-
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    console.error("Error during login:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
+    res.setHeader("Access-Control-Allow-Credentials", true);
+    res.setHeader("Access-Control-Allow-Origin", process.env.APP_URL);
+    // Логиним пользователя
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+      return res.status(200).json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          balance: user.balance,
+        },
+      });
+    });
+  })(req, res, next);
 });
 
 // Authentication endpoint
@@ -74,7 +77,7 @@ router.get("/auth", (req, res, next) => {
     req.body.hash = req.query.hash; // Копируем hash из query в body
   }
   res.setHeader("Access-Control-Allow-Credentials", true);
-  res.setHeader('Access-Control-Allow-Origin', process.env.APP_URL);
+  res.setHeader("Access-Control-Allow-Origin", process.env.APP_URL);
   passport.authenticate("email-link", { session: true }, (err, user, info) => {
     if (err) return next(err);
     if (!user) return res.status(400).send({ message: info.message });
@@ -108,11 +111,11 @@ router.post("/resend", async (req, res) => {
 
 // Logout endpoint
 router.post("/logout", (req, res) => {
-  req.logOut()
-  res.clearCookie('session')
-  res.clearCookie('session.sig')
+  req.logOut();
+  res.clearCookie("session");
+  res.clearCookie("session.sig");
   res.status(200).json({ success: true });
-  return
+  return;
 });
 
 // User information endpoint

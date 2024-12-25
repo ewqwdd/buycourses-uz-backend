@@ -5,6 +5,7 @@ const session = require("cookie-session");
 const LocalStrategy = require("passport-local").Strategy;
 const { initializeDatabase } = require("./sequelize/sequelize");
 const { User } = require("./models/User");
+const { verifyPassword } = require("./lib/passwords");
 const app = express();
 require("dotenv").config();
 
@@ -60,6 +61,35 @@ passport.use(
 
         user.emailLink = null; // Инвалидируем ссылку после использования
         await user.save();
+        return done(null, user);
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.use(
+  "local",
+  new LocalStrategy(
+    {
+      usernameField: "email", // Поле для email
+      passwordField: "password", // Поле для пароля
+      passReqToCallback: true, // Передача req в callback
+    },
+    async (req, email, password, done) => {
+      try {
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+          return done(null, false, { message: "Invalid email or password" });
+        }
+
+        const verified = await verifyPassword(password, user.password);
+        if (!verified) {
+          return done(null, false, { message: "Invalid email or password" });
+        }
+
+        // Если всё успешно
         return done(null, user);
       } catch (error) {
         return done(error);
