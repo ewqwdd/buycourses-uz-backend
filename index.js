@@ -81,12 +81,12 @@ passport.use(
       try {
         const user = await User.findOne({ where: { email } });
         if (!user) {
-          return done(null, false, { message: "Invalid email or password" });
+          return done(null, false, { message: "Неверная почта или пароль" });
         }
 
         const verified = await verifyPassword(password, user.password);
         if (!verified) {
-          return done(null, false, { message: "Invalid email or password" });
+          return done(null, false, { message: "Неверная почта или пароль" });
         }
 
         // Если всё успешно

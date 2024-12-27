@@ -18,7 +18,7 @@ router.post("/register", async (req, res, next) => {
 
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
-      return res.status(400).send({ message: "User with this email already exists" });
+      return res.status(400).send({ message: "Пользователь с этой почтой уже существует" });
     }
 
     res.setHeader("Access-Control-Allow-Credentials", true);
@@ -43,7 +43,7 @@ router.post("/register", async (req, res, next) => {
     });
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Ошибка сервера" });
   }
 });
 
