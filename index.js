@@ -99,6 +99,9 @@ passport.use(
 );
 
 app.use(require("./routes/defaultRouter"));
+app.use('/categories', require("./routes/categoryRouter"));
+app.use('/products', require("./routes/productsRouter"));
+app.use('/withdraws', require("./routes/withdrawRouter"));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

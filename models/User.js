@@ -1,5 +1,7 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../sequelize/sequelize");
+const { Product } = require("./Product");
+const { Transaction } = require("./Transaction");
 
 const User = sequelize.define(
   "User",
@@ -20,6 +22,10 @@ const User = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    role: {
+      type: DataTypes.ENUM("admin", "user"),
+      defaultValue: "user",
+    }
   },
   {
     createdAt: true,

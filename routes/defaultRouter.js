@@ -1,9 +1,10 @@
 const express = require("express");
 const passport = require("passport");
 const { User } = require("../models/User");
-const { generateLink } = require("../lib/generateLink");
 const { sendLink } = require("../lib/mailer");
-const { hashPassword, verifyPassword } = require("../lib/passwords");
+const { hashPassword } = require("../lib/passwords");
+const authMiddleware = require("../middleware/authMiddleware");
+const { Product, Transaction, Material } = require("../models");
 require("dotenv").config();
 
 const router = express.Router();
@@ -13,12 +14,16 @@ router.post("/register", async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).send({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .send({ message: "Email and password are required" });
     }
 
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
-      return res.status(400).send({ message: "Пользователь с этой почтой уже существует" });
+      return res
+        .status(400)
+        .send({ message: "Пользователь с этой почтой уже существует" });
     }
 
     res.setHeader("Access-Control-Allow-Credentials", true);
@@ -101,7 +106,10 @@ router.post("/resend", async (req, res) => {
     if (!user) {
       return res.status(400).send({ message: "Invalid email" });
     }
-    sendLink(email, `${process.env.APP_URL}/email-confirm/?hash=${user.emailLink}`);
+    sendLink(
+      email,
+      `${process.env.APP_URL}/email-confirm/?hash=${user.emailLink}`
+    );
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("Error during resend:", error);
@@ -119,17 +127,54 @@ router.post("/logout", (req, res) => {
 });
 
 // User information endpoint
-router.get("/me", (req, res) => {
-  if (!req.isAuthenticated || !req.isAuthenticated()) {
-    return res.status(401).send({ message: "Not authenticated" });
-  }
-
-  res.status(200).send({
-    id: req.user.id,
-    email: req.user.email,
-    createdAt: req.user.createdAt,
-    balance: req.user.balance,
+router.get("/me", authMiddleware, async (req, res) => {
+  const user = await User.findOne({
+    where: { id: req.user.id },
+    attributes: { exclude: ["password"] },
+    include: [
+      {
+        model: Product,
+        as: "products",
+        include: [
+          {
+            model: Material,
+            as: "materials",
+          },
+        ],
+      },
+      {
+        model: Transaction,
+        as: "transactions",
+      },
+      {
+        model: Product,
+        as: "purchasedProducts",
+        include: [
+          {
+            model: Material,
+            as: "materials",
+          },
+        ],
+      },
+    ],
   });
+
+  res.status(200).json(user);
+});
+
+router.post("/deposit", authMiddleware, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const id = req.user.id;
+    const user = await User.findByPk(id);
+    user.balance += amount;
+    await user.save();
+    await Transaction.create({ userId: id, amount, type: 'deposit' });
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
 });
 
 module.exports = router;
