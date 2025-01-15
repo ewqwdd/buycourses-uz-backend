@@ -2,6 +2,7 @@ const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
 const { Withdraw } = require("../models/Withdraw");
 const maskCard = require("../lib/maskCard");
+const { User } = require("../models");
 require("dotenv").config();
 
 const router = express.Router();
@@ -22,6 +23,10 @@ router.post("/", authMiddleware, async (req, res) => {
   try {
     const { amount, cardNumber } = req.body;
     const userId = req.user.id;
+    const user = await User.findByPk(userId);
+    if (user.balance < amount) {
+      return res.status(400).json({ message: "Недостаточно средств" });
+    }
     const withdraw = await Withdraw.create({
       amount,
       userId,
