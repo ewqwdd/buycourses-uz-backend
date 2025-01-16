@@ -16,6 +16,9 @@ const Product = sequelize.define(
     price: {
       type: DataTypes.FLOAT,
     },
+    image: {
+      type: DataTypes.STRING,
+    },
   },
   {
     createdAt: true,
