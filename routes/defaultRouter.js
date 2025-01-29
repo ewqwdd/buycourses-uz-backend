@@ -162,19 +162,4 @@ router.get("/me", authMiddleware, async (req, res) => {
   res.status(200).json(user);
 });
 
-router.post("/deposit", authMiddleware, async (req, res) => {
-  try {
-    const { amount } = req.body;
-    const id = req.user.id;
-    const user = await User.findByPk(id);
-    user.balance += amount;
-    await user.save();
-    await Transaction.create({ userId: id, amount, type: 'deposit' });
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Ошибка сервера" });
-  }
-});
-
 module.exports = router;

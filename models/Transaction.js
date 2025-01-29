@@ -10,6 +10,9 @@ const Transaction = sequelize.define(
     amount: {
       type: DataTypes.INTEGER,
     },
+    status: {
+      type: DataTypes.ENUM("pending", "completed", "cancelled"),
+    },
   },
   {
     createdAt: true,
