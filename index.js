@@ -98,6 +98,11 @@ passport.use(
   )
 );
 
+app.post('*', (req, res, next) => {
+  console.log(req.originalUrl, req.body)
+  next()
+})
+
 app.use(require("./routes/defaultRouter"));
 app.use('/deposit', require("./routes/depositRouter"));
 app.use('/categories', require("./routes/categoryRouter"));
