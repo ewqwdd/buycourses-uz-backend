@@ -6,9 +6,6 @@ const LocalStrategy = require("passport-local").Strategy;
 const { initializeDatabase } = require("./sequelize/sequelize");
 const { User } = require("./models/User");
 const { verifyPassword } = require("./lib/passwords");
-const { createDeposit } = require("./lib/paymentService");
-const cron = require('node-cron');
-const { Transaction } = require("./models");
 const app = express();
 require("dotenv").config();
 
@@ -113,29 +110,6 @@ app.use('/products', require("./routes/productsRouter"));
 app.use('/withdraws', require("./routes/withdrawRouter"));
 app.use('/transactions', require("./routes/transactionRouter"));
 
-cron.schedule('* * * * *', async () => {
-  console.log('Running cron job');
-  await Transaction.findAll({
-    where: {
-      status: 'pending',
-      type: 'deposit'
-    }
-  }).then((transactions) => {
-    transactions.forEach(async (transaction) => {
-      const deposit = await createDeposit(transaction.id, transaction.amount, transaction.userId);
-      if (deposit?.status === 'succeeded') {
-        transaction.status = 'completed';
-        const user = await User.findByPk(transaction.userId);
-        user.balance += transaction.amount;
-        await user.save();
-        await transaction.save();
-      } else if (deposit?.error !== 0) {
-        transaction.status = 'cancelled';
-        await transaction.save();
-      }
-    })
-  })
-});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

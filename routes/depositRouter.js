@@ -2,6 +2,7 @@ const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
 const { Transaction, User } = require("../models");
 const { createDeposit } = require("../lib/paymentService");
+const { default: axios } = require("axios");
 require("dotenv").config();
 
 const router = express.Router();
@@ -14,7 +15,7 @@ router.post("/", authMiddleware, async (req, res) => {
       userId: id,
       amount,
       type: "deposit",
-      status: 'pending',
+      status: "pending",
     });
     const deposit = await createDeposit(transaction.dataValues.id, amount, id);
 
@@ -33,9 +34,12 @@ router.post("/notify", async (req, res) => {
   try {
     const { shop_transaction_id, status } = req.body;
     console.log(req.body);
-    const transaction = await Transaction.findByPk(shop_transaction_id);
+    if (!shop_transaction_id || !status) {
+      return res.status(200).send("OK");
+    }
+    const transaction = await Transaction.findByPk(Number(shop_transaction_id));
     if (transaction && status === "succeeded") {
-      transaction.status = "success";
+      transaction.status = "completed";
       if (transaction.type === "deposit") {
         const user = await User.findByPk(transaction.userId);
         user.balance += transaction.amount;
@@ -47,6 +51,21 @@ router.post("/notify", async (req, res) => {
     return res.status(200).send("OK");
   } catch (error) {
     console.error("Unable to connect to the database:", error);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+router.post("/callback/anor", async (req, res) => {
+  try {
+    const body = req.body;
+
+    await axios.post(
+      `${process.env.PAY_CRM_URL}/Remotes/callback-anor-deposit`,
+      body
+    );
+    return res.status(200).send("OK");
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });
