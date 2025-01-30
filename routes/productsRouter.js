@@ -87,9 +87,9 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
       image,
     });
 
-    console.log(materials, materials.length);
-    if (Array.isArray(materials) && materials.length > 0) {
-      const materialData = materials.map((material) => ({
+    const parsed = typeof materials === 'string' ? JSON.parse(materials) : materials;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const materialData = parsed.map((material) => ({
         name: material.name,
         url: material.url,
         productId: product.id,
