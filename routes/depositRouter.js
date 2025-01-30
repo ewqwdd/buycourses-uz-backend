@@ -17,7 +17,7 @@ router.post("/", authMiddleware, async (req, res) => {
       type: "deposit",
       status: "pending",
     });
-    const deposit = await createDeposit(transaction.dataValues.id, amount, id);
+    const deposit = await createDeposit(transaction.dataValues.id, amount * 1.01, id);
 
     if (deposit?.pay_url) {
       return res.json({ url: deposit.pay_url });
