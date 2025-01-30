@@ -87,6 +87,7 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
       image,
     });
 
+    console.log(materials, materials.length);
     if (Array.isArray(materials) && materials.length > 0) {
       const materialData = materials.map((material) => ({
         name: material.name,
@@ -95,6 +96,7 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
       }));
       await Material.bulkCreate(materialData);
     }
+
     res.json(product);
   } catch (error) {
     console.error("Unable to connect to the database:", error);
