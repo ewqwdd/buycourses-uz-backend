@@ -59,10 +59,11 @@ router.post("/callback/anor", async (req, res) => {
   try {
     const body = req.body;
 
-    await axios.post(
+    const { data } = await axios.post(
       `${process.env.PAY_CRM_URL}/Remotes/callback-anor-deposit`,
       body
     );
+    console.log("PAY CRM RESPOSNSE:\n", data);
     return res.status(200).send("OK");
   } catch (error) {
     console.error(error);
