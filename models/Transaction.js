@@ -13,6 +13,10 @@ const Transaction = sequelize.define(
     status: {
       type: DataTypes.ENUM("pending", "completed", "cancelled"),
     },
+    orderId: {
+      type: DataTypes.STRING,
+      unique: true,
+    }
   },
   {
     createdAt: true,

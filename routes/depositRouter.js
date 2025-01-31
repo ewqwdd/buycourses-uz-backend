@@ -3,6 +3,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const { Transaction, User } = require("../models");
 const { createDeposit } = require("../lib/paymentService");
 const { default: axios } = require("axios");
+const { generateOrderId } = require("../lib/generateOrderId");
 require("dotenv").config();
 
 const router = express.Router();
@@ -11,13 +12,15 @@ router.post("/", authMiddleware, async (req, res) => {
   try {
     const { amount } = req.body;
     const id = req.user.id;
+    const orderId = generateOrderId();
     const transaction = await Transaction.create({
       userId: id,
       amount,
       type: "deposit",
       status: "pending",
+      orderId,
     });
-    const deposit = await createDeposit(transaction.dataValues.id, amount * 1.01, id);
+    const deposit = await createDeposit(orderId, amount * 1.01, id);
 
     if (deposit?.pay_url) {
       return res.json({ url: deposit.pay_url });
@@ -37,7 +40,9 @@ router.post("/notify", async (req, res) => {
     if (!shop_transaction_id || !status) {
       return res.status(200).send("OK");
     }
-    const transaction = await Transaction.findByPk(Number(shop_transaction_id));
+    const transaction = await Transaction.findOne({
+      where: { orderId: shop_transaction_id },
+    });
     if (transaction && status === "succeeded") {
       transaction.status = "completed";
       if (transaction.type === "deposit") {
