@@ -46,7 +46,8 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
     }
 
     let newId = categoryId;
-    if (categoryId === -1) {
+    console.log(newId)
+    if (newId == -1) {
       const slug = slugify(customCategory, {
         lower: true,
         remove: /[*+~.()'"!:@]/g,
@@ -59,6 +60,7 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
           .json({ message: "Категория с таким названием уже существует" });
       }
       const category = await Category.create({ name: customCategory, slug });
+      console.log(category);
       newId = category.dataValues.id;
     }
 
