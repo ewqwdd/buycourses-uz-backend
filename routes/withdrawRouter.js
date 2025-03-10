@@ -15,7 +15,7 @@ router.get("/", authMiddleware, async (req, res) => {
     res.json(masked);
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Ошибка сервера" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -37,7 +37,7 @@ router.post("/", authMiddleware, async (req, res) => {
     res.json(withdraw);
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Ошибка сервера" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 

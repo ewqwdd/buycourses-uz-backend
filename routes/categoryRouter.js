@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
     res.json(categories);
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Ошибка сервера" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -27,7 +27,7 @@ router.post("/", async (req, res) => {
     res.json(category);
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Ошибка сервера" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -53,7 +53,7 @@ router.get("/:slug", async (req, res) => {
     res.json({ items: products, total });
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Ошибка сервера" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 

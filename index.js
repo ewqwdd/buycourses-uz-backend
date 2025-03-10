@@ -15,9 +15,12 @@ app.use(
     origin: process.env.APP_URL,
   })
 );
-app.set('trust proxy', 1)
 
 const isDev = process.env.BASE_URL.includes('localhost')
+
+if (!isDev) {
+  app.set('trust proxy', 1)
+}
 
 app.use(express.json());
 app.use(
@@ -98,10 +101,6 @@ passport.use(
   )
 );
 
-app.post('*', (req, res, next) => {
-  console.log(req.originalUrl, req.body)
-  next()
-})
 
 app.use(require("./routes/defaultRouter"));
 app.use('/deposit', require("./routes/depositRouter"));

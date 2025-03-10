@@ -1,11 +1,12 @@
 const express = require("express");
 const slugify = require("slugify");
-const { Product, Material, Category, Transaction, User } = require("../models");
+const { Product, Category, Transaction, User } = require("../models");
 const authMiddleware = require("../middleware/authMiddleware");
 const { uploadImageToS3, deleteImageFromS3 } = require("../lib/s3Service");
 const multer = require("multer");
 require("dotenv").config();
 const path = require("path");
+const { typings } = require("../lib/typings");
 
 const upload = multer({
   dest: path.join(__dirname, "../public/temp"),
@@ -16,18 +17,18 @@ const router = express.Router();
 router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
   try {
     const { id } = req.user;
-    const { name, img, content, materials, categoryId, customCategory, price } =
+    const { name, img, content, categoryId, customCategory, price } =
       req.body;
 
-    if (!name || !content || !materials || parseFloat(price) <= 0) {
+    if (!name || !content  || parseFloat(price) <= 0) {
       return res
         .status(400)
-        .json({ message: "Название, изображение и описание обязательны" });
+        .json({ message: typings.titleDescriptionRequired });
     }
     if (!categoryId && !customCategory) {
       return res
         .status(400)
-        .json({ message: "Выберите категорию или укажите свою" });
+        .json({ message: typings.chooseOrCreateCategory });
     }
     const slug = slugify(name, {
       lower: true,
@@ -42,7 +43,7 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
     if (foundProduct) {
       return res
         .status(400)
-        .json({ message: "Продукт с таким названием уже существует" });
+        .json({ message: typings.productExists });
     }
 
     let newId = categoryId;
@@ -57,10 +58,9 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
       if (foundCategory) {
         return res
           .status(400)
-          .json({ message: "Категория с таким названием уже существует" });
+          .json({ message: typings.categoryExists });
       }
       const category = await Category.create({ name: customCategory, slug });
-      console.log(category);
       newId = category.dataValues.id;
     }
 
@@ -89,20 +89,10 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
       image,
     });
 
-    const parsed = typeof materials === 'string' ? JSON.parse(materials) : materials;
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      const materialData = parsed.map((material) => ({
-        name: material.name,
-        url: material.url,
-        productId: product.id,
-      }));
-      await Material.bulkCreate(materialData);
-    }
-
     res.json(product);
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Ошибка сервера" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -111,12 +101,12 @@ router.get("/:slug", async (req, res) => {
     const { slug } = req.params;
     const product = await Product.findOne({ where: { slug } });
     if (!product) {
-      return res.status(404).json({ message: "Продукт не найден" });
+      return res.status(404).json({ message: typings.productNotFound });
     }
     res.json(product);
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Ошибка сервера" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -124,18 +114,11 @@ router.post("/buy", authMiddleware, async (req, res) => {
   try {
     const { id } = req.user;
     const { productId } = req.body;
-    const product = await Product.findByPk(productId, {
-      include: {
-        model: Material,
-        as: "materials",
-      },
-    });
+    const product = await Product.findByPk(productId);
     if (!product) {
-      return res.status(404).json({ message: "Продукт не найден" });
+      return res.status(404).json({ message: typings.productNotFound });
     }
-    if (product.userId === id) {
-      return res.status(400).json({ message: "Нельзя купить свой продукт" });
-    }
+
     const buyer = await User.findByPk(id, {
       include: {
         model: Product,
@@ -143,11 +126,8 @@ router.post("/buy", authMiddleware, async (req, res) => {
       },
     });
 
-    if (buyer && buyer.purchasedProducts.find((e) => e.id === productId)) {
-      return res.status(400).json({ message: "Этот продукт уже куплен вами" });
-    }
     if (buyer.balance < product.price) {
-      return res.status(400).json({ message: "Недостаточно средств" });
+      return res.status(400).json({ message: typings.insufficientFunds });
     }
     const seller = await User.findByPk(product.userId);
     buyer.balance -= product.price;
@@ -170,7 +150,7 @@ router.post("/buy", authMiddleware, async (req, res) => {
     res.json(product);
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Ошибка сервера" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 

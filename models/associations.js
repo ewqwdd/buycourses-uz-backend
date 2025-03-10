@@ -1,5 +1,4 @@
 const { Category } = require("./Category");
-const { Material } = require("./Material");
 const { Product } = require("./Product");
 const { Transaction } = require("./Transaction");
 const { User } = require("./User");
@@ -11,13 +10,6 @@ Category.hasMany(Product, {
   foreignKey: "categoryId",
 });
 
-// Ассоциации для Material
-Material.belongsTo(Product, {
-  foreignKey: {
-    name: "productId",
-    allowNull: false,
-  },
-});
 
 // Ассоциации для Product
 Product.belongsTo(Category, {
@@ -27,10 +19,6 @@ Product.belongsTo(Category, {
   },
 });
 
-Product.hasMany(Material, {
-  foreignKey: "productId",
-  as: "materials",
-});
 
 Product.belongsTo(User, {
   foreignKey: {
@@ -108,7 +96,6 @@ Product.belongsToMany(User, {
 
 module.exports = {
   Category,
-  Material,
   Product,
   Transaction,
   User,

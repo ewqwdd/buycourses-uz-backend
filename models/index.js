@@ -1,6 +1,5 @@
 const {
   Category,
-  Material,
   Product,
   Transaction,
   User,
@@ -8,7 +7,6 @@ const {
 
 module.exports = {
   Category,
-  Material,
   Product,
   Transaction,
   User,

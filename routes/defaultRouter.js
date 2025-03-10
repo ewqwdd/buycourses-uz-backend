@@ -4,7 +4,7 @@ const { User } = require("../models/User");
 const { sendLink } = require("../lib/mailer");
 const { hashPassword } = require("../lib/passwords");
 const authMiddleware = require("../middleware/authMiddleware");
-const { Product, Transaction, Material } = require("../models");
+const { Product, Transaction } = require("../models");
 require("dotenv").config();
 
 const router = express.Router();
@@ -48,7 +48,7 @@ router.post("/register", async (req, res, next) => {
     });
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    return res.status(500).json({ message: "Ошибка сервера" });
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -135,12 +135,6 @@ router.get("/me", authMiddleware, async (req, res) => {
       {
         model: Product,
         as: "products",
-        include: [
-          {
-            model: Material,
-            as: "materials",
-          },
-        ],
       },
       {
         model: Transaction,
@@ -149,12 +143,6 @@ router.get("/me", authMiddleware, async (req, res) => {
       {
         model: Product,
         as: "purchasedProducts",
-        include: [
-          {
-            model: Material,
-            as: "materials",
-          },
-        ],
       },
     ],
   });
