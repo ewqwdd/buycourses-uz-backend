@@ -10,7 +10,6 @@ Category.hasMany(Product, {
   foreignKey: "categoryId",
 });
 
-
 // Ассоциации для Product
 Product.belongsTo(Category, {
   foreignKey: {
@@ -18,7 +17,6 @@ Product.belongsTo(Category, {
     allowNull: false,
   },
 });
-
 
 Product.belongsTo(User, {
   foreignKey: {

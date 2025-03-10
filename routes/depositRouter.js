@@ -21,26 +21,28 @@ router.post("/", authMiddleware, async (req, res) => {
       orderId,
     });
 
-    const payUrl = process.env.CLICK_API + `/services/pay?service_id=${process.env.CLICK_SERVICE_ID}` +
-    `&merchant_id=${process.env.CLICK_MERCHANT_ID}` +
-    `&amount=${amount}` + 
-    `&transaction_param=${orderId}` +
-    `&return_url=${process.env.BASE_URL + '/notify'}`
+    const payUrl =
+      process.env.CLICK_API +
+      `/services/pay?service_id=${process.env.CLICK_SERVICE_ID}` +
+      `&merchant_id=${process.env.CLICK_MERCHANT_ID}` +
+      `&amount=${amount}` +
+      `&transaction_param=${orderId}` +
+      `&return_url=${process.env.BASE_URL + "/notify"}`;
 
     return res.json({
-      url: payUrl
-    })
+      url: payUrl,
+    });
   } catch (error) {
     console.error("Unable to connect to the database:", error);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });
 
-router.get('/notify', async (req, res) => {
-  console.log(req.query)
-  console.log('GET')
-  return res.status(200).send('OK')
-})
+router.get("/notify", async (req, res) => {
+  console.log(req.query);
+  console.log("GET");
+  return res.status(200).send("OK");
+});
 
 router.post("/notify", async (req, res) => {
   try {
@@ -74,7 +76,7 @@ router.post("/callback/anor", async (req, res) => {
 
     const { data } = await axios.post(
       `${process.env.PAY_CRM_URL}/Remotes/callback-anor-deposit`,
-      body
+      body,
     );
     console.log("PAY CRM RESPOSNSE:\n", data);
     return res.status(200).send("OK");

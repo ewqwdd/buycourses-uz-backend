@@ -16,11 +16,11 @@ const Transaction = sequelize.define(
     orderId: {
       type: DataTypes.STRING,
       unique: true,
-    }
+    },
   },
   {
     createdAt: true,
-  }
+  },
 );
 
 module.exports = { Transaction };

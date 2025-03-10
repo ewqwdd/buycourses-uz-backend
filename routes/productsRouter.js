@@ -17,18 +17,15 @@ const router = express.Router();
 router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
   try {
     const { id } = req.user;
-    const { name, img, content, categoryId, customCategory, price } =
-      req.body;
+    const { name, img, content, categoryId, customCategory, price } = req.body;
 
-    if (!name || !content  || parseFloat(price) <= 0) {
+    if (!name || !content || parseFloat(price) <= 0) {
       return res
         .status(400)
         .json({ message: typings.titleDescriptionRequired });
     }
     if (!categoryId && !customCategory) {
-      return res
-        .status(400)
-        .json({ message: typings.chooseOrCreateCategory });
+      return res.status(400).json({ message: typings.chooseOrCreateCategory });
     }
     const slug = slugify(name, {
       lower: true,
@@ -41,13 +38,11 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
       attributes: { exclude: ["content"] },
     });
     if (foundProduct) {
-      return res
-        .status(400)
-        .json({ message: typings.productExists });
+      return res.status(400).json({ message: typings.productExists });
     }
 
     let newId = categoryId;
-    console.log(newId)
+    console.log(newId);
     if (newId == -1) {
       const slug = slugify(customCategory, {
         lower: true,
@@ -56,9 +51,7 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
       });
       const foundCategory = await Category.findOne({ where: { slug } });
       if (foundCategory) {
-        return res
-          .status(400)
-          .json({ message: typings.categoryExists });
+        return res.status(400).json({ message: typings.categoryExists });
       }
       const category = await Category.create({ name: customCategory, slug });
       newId = category.dataValues.id;
@@ -70,11 +63,11 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
     if (file) {
       if (image) {
         await deleteImageFromS3(
-          foundProduct?.image.split("amazonaws.com/").pop()
+          foundProduct?.image.split("amazonaws.com/").pop(),
         );
       }
       const ext = file.originalname.split(".").pop();
-      const newName = `${file.filename}_${Date.now()}.${ext}`; 
+      const newName = `${file.filename}_${Date.now()}.${ext}`;
       image = await uploadImageToS3(file.path, newName, "products");
     }
 

@@ -22,7 +22,7 @@ const Product = sequelize.define(
   },
   {
     createdAt: true,
-  }
+  },
 );
 
 module.exports = { Product };
