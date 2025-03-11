@@ -18,7 +18,7 @@ const Category = sequelize.define(
   },
   {
     createdAt: true,
-  }
+  },
 );
 
 module.exports = { Category };

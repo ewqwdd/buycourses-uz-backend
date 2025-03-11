@@ -1,9 +1,4 @@
-const {
-  Category,
-  Product,
-  Transaction,
-  User,
-} = require("./associations");
+const { Category, Product, Transaction, User } = require("./associations");
 
 module.exports = {
   Category,

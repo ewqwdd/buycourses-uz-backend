@@ -1,7 +1,11 @@
 const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
 const { Transaction, User } = require("../models");
-const { createDeposit, createDepositKhati, createDepositEsewa } = require("../lib/paymentService");
+const {
+  createDeposit,
+  createDepositKhati,
+  createDepositEsewa,
+} = require("../lib/paymentService");
 const { default: axios } = require("axios");
 const { generateOrderId } = require("../lib/generateOrderId");
 const { AxiosError } = require("axios");
@@ -21,8 +25,13 @@ router.post("/khati", authMiddleware, async (req, res) => {
       status: "pending",
       orderId,
     });
-    const user = await User.findByPk(id)
-    const deposit = await createDepositKhati(orderId, amount * 1.01, 'Deposit',user);
+    const user = await User.findByPk(id);
+    const deposit = await createDepositKhati(
+      orderId,
+      amount * 1.01,
+      "Deposit",
+      user,
+    );
 
     if (deposit?.payment_url) {
       return res.json({ url: deposit.payment_url });
@@ -31,7 +40,7 @@ router.post("/khati", authMiddleware, async (req, res) => {
     return res.status(400).json({ success: false });
   } catch (error) {
     if (error instanceof AxiosError) {
-      console.error(error.response.data)
+      console.error(error.response.data);
     } else {
       console.error("Unable to connect to the database:", error);
     }
@@ -51,9 +60,9 @@ router.post("/esewa", authMiddleware, async (req, res) => {
       status: "pending",
       orderId,
     });
-    const user = await User.findByPk(id)
+    const user = await User.findByPk(id);
     const deposit = await createDepositEsewa(orderId, amount * 1.01);
-    console.log(deposit)
+    console.log(deposit);
 
     if (deposit?.payment_url) {
       return res.json({ url: deposit.payment_url });
@@ -62,7 +71,7 @@ router.post("/esewa", authMiddleware, async (req, res) => {
     return res.status(400).json({ success: false });
   } catch (error) {
     if (error instanceof AxiosError) {
-      console.error(error.response.data)
+      console.error(error.response.data);
     } else {
       console.error("Unable to connect to the database:", error);
     }
@@ -97,9 +106,9 @@ router.post("/notify", async (req, res) => {
   }
 });
 
-router.get('/khati/notify', async (req, res) => {
+router.get("/khati/notify", async (req, res) => {
   try {
-    const {purchase_order_id, status} = req.query
+    const { purchase_order_id, status } = req.query;
     if (!purchase_order_id) {
       return res.status(200).send("OK");
     }
@@ -107,7 +116,7 @@ router.get('/khati/notify', async (req, res) => {
       where: { orderId: purchase_order_id },
     });
 
-    if (status === 'Completed') {
+    if (status === "Completed") {
       transaction.status = "completed";
       if (transaction.type === "deposit") {
         const user = await User.findByPk(transaction.userId);
@@ -116,12 +125,16 @@ router.get('/khati/notify', async (req, res) => {
       }
       await transaction.save();
     }
-    
-    return res.status(200).redirect(`${process.env.APP_URL}/deposit/confirmation?id=${transaction.id}`)
+
+    return res
+      .status(200)
+      .redirect(
+        `${process.env.APP_URL}/deposit/confirmation?id=${transaction.id}`,
+      );
   } catch (error) {
     console.error("Unable to connect to the database:", error);
     res.status(500).json({ message: "Server error" });
   }
-})
+});
 
 module.exports = router;

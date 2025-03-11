@@ -108,7 +108,7 @@ router.post("/resend", async (req, res) => {
     }
     sendLink(
       email,
-      `${process.env.APP_URL}/email-confirm/?hash=${user.emailLink}`
+      `${process.env.APP_URL}/email-confirm/?hash=${user.emailLink}`,
     );
     return res.status(200).json({ success: true });
   } catch (error) {

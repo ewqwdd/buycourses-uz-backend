@@ -11,7 +11,10 @@ router.get("/", authMiddleware, async (req, res) => {
   try {
     const id = req.user.id;
     const data = await Withdraw.findAll({ where: { userId: id } });
-    const masked = data.map((item) => ({...item.dataValues, cardNumber: maskCard(item.cardNumber)}));
+    const masked = data.map((item) => ({
+      ...item.dataValues,
+      cardNumber: maskCard(item.cardNumber),
+    }));
     res.json(masked);
   } catch (error) {
     console.error("Unable to connect to the database:", error);
@@ -32,7 +35,7 @@ router.post("/", authMiddleware, async (req, res) => {
       userId,
       status: "pending",
       date: new Date(),
-      cardNumber
+      cardNumber,
     });
     res.json(withdraw);
   } catch (error) {

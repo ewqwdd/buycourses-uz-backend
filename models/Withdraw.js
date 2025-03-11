@@ -19,7 +19,7 @@ const Withdraw = sequelize.define(
   },
   {
     createdAt: true,
-  }
+  },
 );
 
 module.exports = { Withdraw };

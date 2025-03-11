@@ -13,13 +13,13 @@ app.use(
   cors({
     credentials: true,
     origin: process.env.APP_URL,
-  })
+  }),
 );
 
-const isDev = process.env.BASE_URL.includes('localhost')
+const isDev = process.env.BASE_URL.includes("localhost");
 
 if (!isDev) {
-  app.set('trust proxy', 1)
+  app.set("trust proxy", 1);
 }
 
 app.use(express.json());
@@ -28,9 +28,9 @@ app.use(
     name: "session",
     keys: [process.env.SESSION_SECRET || "secret"],
     maxAge: 24 * 60 * 60 * 1000 * 15, // 15 day
-    sameSite: isDev ? 'lax' : "none",
+    sameSite: isDev ? "lax" : "none",
     secure: !isDev,
-  })
+  }),
 );
 app.use(passport.initialize());
 app.use(passport.session());
@@ -68,8 +68,8 @@ passport.use(
       } catch (error) {
         return done(error);
       }
-    }
-  )
+    },
+  ),
 );
 
 passport.use(
@@ -97,18 +97,16 @@ passport.use(
       } catch (error) {
         return done(error);
       }
-    }
-  )
+    },
+  ),
 );
 
-
 app.use(require("./routes/defaultRouter"));
-app.use('/deposit', require("./routes/depositRouter"));
-app.use('/categories', require("./routes/categoryRouter"));
-app.use('/products', require("./routes/productsRouter"));
-app.use('/withdraws', require("./routes/withdrawRouter"));
-app.use('/transactions', require("./routes/transactionRouter"));
-
+app.use("/deposit", require("./routes/depositRouter"));
+app.use("/categories", require("./routes/categoryRouter"));
+app.use("/products", require("./routes/productsRouter"));
+app.use("/withdraws", require("./routes/withdrawRouter"));
+app.use("/transactions", require("./routes/transactionRouter"));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
