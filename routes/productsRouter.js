@@ -16,7 +16,10 @@ const router = express.Router();
 
 router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
   try {
-    const { id } = req.user;
+    const { id, email } = req.user;
+    if (!email.includes('chul.com')) {
+      return res.status(403).json({ message: typings.permissionDenied });
+    }
     const { name, img, content, categoryId, customCategory, price } =
       req.body;
 
