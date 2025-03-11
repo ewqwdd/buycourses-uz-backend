@@ -6,6 +6,7 @@ const { default: axios } = require("axios");
 const { generateOrderId } = require("../lib/generateOrderId");
 require("dotenv").config();
 const crypto = require('crypto');
+const { sendMessageToChannel } = require("../lib/telegramLogger");
 
 
 function md5(input) {
@@ -26,6 +27,9 @@ router.post("/", authMiddleware, async (req, res) => {
       status: "pending",
       orderId,
     });
+    sendMessageToChannel(`/deposit \`\`\`
+${JSON.stringify(transaction, null, 2)}
+\`\`\``)
 
     const payUrl =
       process.env.CLICK_API +
@@ -45,6 +49,9 @@ router.post("/", authMiddleware, async (req, res) => {
 });
 
 router.get("/notify", async (req, res) => {
+  sendMessageToChannel(`/notify GET\n\`\`\`
+${JSON.stringify(req.query, null, 2)}
+\`\`\``)
   console.log(req.query);
   console.log("GET");
   return res.status(200).send("OK");
@@ -95,21 +102,32 @@ router.post("/callback/anor", async (req, res) => {
 router.post('/click/prepare', async (req, res) => {
   try {
   const { click_trans_id, merchant_trans_id, amount, action, sign_time, sign_string, service_id } = req.body;
-  console.log(req.body)
+  sendMessageToChannel(`prepare:\n
+\`\`\`
+${JSON.stringify(req.body, null, 2)}
+\`\`\``)
 
   // Формируем контрольную строку
   const secretKey = process.env.CLICK_SECRET_KEY;
   const expectedSign = md5(`${click_trans_id}${service_id}${secretKey}${merchant_trans_id}${amount}${action}${sign_time}`);
 
+  sendMessageToChannel(` \`\`\`
+${JSON.stringify({expectedSign, sign_string}, null, 2)}
+\`\`\``)
+
   if (sign_string !== expectedSign) {
       return res.json({ error: -1, error_note: "Invalid signature" });
   }
 
-  console.log(merchant_trans_id)
+  sendMessageToChannel(` \`\`\`
+${JSON.stringify({merchant_trans_id}, null, 2)}
+\`\`\``)
 
   // Проверяем, существует ли заказ
   const order = await Transaction.findOne({ where: { orderId: merchant_trans_id } });
-  console.log(order, amount)
+  sendMessageToChannel(` \`\`\`
+${JSON.stringify({order, amount}, null, 2)}
+\`\`\``)
 
   // if (!order || order.amount !== amount) {
   //     return res.json({ error: -9, error_note: "Invalid order or amount" });
@@ -136,10 +154,15 @@ router.post('/click/prepare', async (req, res) => {
 router.post('/click/complete', async (req, res) => {
   try {
   const { click_trans_id, merchant_trans_id, merchant_prepare_id, amount, action, sign_time, sign_string,service_id } = req.body;
-  console.log(req.body)
+  sendMessageToChannel(`complete:\n
+\`\`\`
+${JSON.stringify(req.body, null, 2)}
+\`\`\``)
   // Проверяем подпись
   const expectedSign = md5(`${click_trans_id}${service_id}${SECRET_KEY}${merchant_trans_id}${merchant_prepare_id}${amount}${action}${sign_time}`);
-  console.log(expectedSign)
+  sendMessageToChannel(` \`\`\`
+${JSON.stringify({expectedSign, sign_string}, null, 2)}
+\`\`\``)
 
   if (sign_string !== expectedSign) {
       return res.json({ error: -1, error_note: "Invalid signature" });
@@ -147,6 +170,9 @@ router.post('/click/complete', async (req, res) => {
 
   // Проверяем, подтвержден ли заказ
   const transaction = await Transaction.findOne({ where: { prepareId: merchant_prepare_id } });
+  sendMessageToChannel(` \`\`\`
+${JSON.stringify(transaction, null, 2)}
+\`\`\``)
   if (!transaction) {
       return res.json({ error: -9, error_note: "Prepare not found" });
   }
