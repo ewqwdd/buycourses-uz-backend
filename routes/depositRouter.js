@@ -92,7 +92,7 @@ router.post("/callback/anor", async (req, res) => {
   }
 });
 
-app.post('/click/prepare', async (req, res) => {
+router.post('/click/prepare', async (req, res) => {
   try {
   const { click_trans_id, merchant_trans_id, amount, action, sign_time, sign_string, service_id } = req.body;
   console.log(req.body)
@@ -133,7 +133,7 @@ app.post('/click/prepare', async (req, res) => {
 }
 });
 
-app.post('/click/complete', async (req, res) => {
+router.post('/click/complete', async (req, res) => {
   try {
   const { click_trans_id, merchant_trans_id, merchant_prepare_id, amount, action, sign_time, sign_string,service_id } = req.body;
   console.log(req.body)
