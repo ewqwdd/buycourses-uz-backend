@@ -6,6 +6,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const { initializeDatabase } = require("./sequelize/sequelize");
 const { User } = require("./models/User");
 const { verifyPassword } = require("./lib/passwords");
+const path = require("path");
 const app = express();
 require("dotenv").config();
 
@@ -101,12 +102,18 @@ passport.use(
   ),
 );
 
+app.use(express.static(path.join(__dirname, "../buycourses-uz/dist")));
+
 app.use(require("./routes/defaultRouter"));
 app.use("/deposit", require("./routes/depositRouter"));
 app.use("/categories", require("./routes/categoryRouter"));
 app.use("/products", require("./routes/productsRouter"));
 app.use("/withdraws", require("./routes/withdrawRouter"));
 app.use("/transactions", require("./routes/transactionRouter"));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../buycourses-uz/dist", "index.html"));
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
