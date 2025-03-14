@@ -110,6 +110,7 @@ app.use("/categories", require("./routes/categoryRouter"));
 app.use("/products", require("./routes/productsRouter"));
 app.use("/withdraws", require("./routes/withdrawRouter"));
 app.use("/transactions", require("./routes/transactionRouter"));
+app.use("/proxy", require("./routes/callbackRouter"));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../buycourses-uz/dist", "index.html"));
