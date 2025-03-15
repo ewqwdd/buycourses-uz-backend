@@ -1,12 +1,19 @@
 const express = require("express");
 const slugify = require("slugify");
-const { Product, Category, Transaction, User } = require("../models");
+const {
+  Product,
+  Category,
+  Transaction,
+  User,
+  UserBasket,
+} = require("../models");
 const authMiddleware = require("../middleware/authMiddleware");
 const { uploadImageToS3, deleteImageFromS3 } = require("../lib/s3Service");
 const multer = require("multer");
 require("dotenv").config();
 const path = require("path");
 const { typings } = require("../lib/typings");
+const adminMiddleware = require("../middleware/adminMiddleware");
 
 const upload = multer({
   dest: path.join(__dirname, "../public/temp"),
@@ -141,6 +148,92 @@ router.post("/buy", authMiddleware, async (req, res) => {
       type: "sell",
     });
     res.json(product);
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/cart/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { id: productId } = req.params;
+    const product = await Product.findByPk(productId);
+    if (!product) {
+      return res.status(404).json({ message: typings.productNotFound });
+    }
+
+    const inCartProduct = await UserBasket.findOne({
+      where: {
+        userId: id,
+        productId,
+      },
+    });
+
+    if (inCartProduct) {
+      inCartProduct.amount += 1;
+      await inCartProduct.save();
+      return res.json(product);
+    }
+
+    const newProduct = await UserBasket.create({
+      userId: id,
+      productId,
+      amount: 1,
+    });
+
+    res.json(newProduct);
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.delete("/cart/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { id: productId } = req.params;
+    const product = await Product.findByPk(productId);
+    if (!product) {
+      return res.status(404).json({ message: typings.productNotFound });
+    }
+
+    const inCartProduct = await UserBasket.findOne({
+      where: {
+        userId: id,
+        productId,
+      },
+    });
+
+    if (inCartProduct) {
+      inCartProduct.amount -= 1;
+      if (inCartProduct.amount === 0) {
+        await inCartProduct.destroy();
+      } else {
+        await inCartProduct.save();
+      }
+      return res.json(product);
+    } else {
+      return res.json({ message: typings.productNotFound });
+    }
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.delete("/:id", adminMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByPk(id);
+    if (!product) {
+      return res.status(404).json({ message: typings.productNotFound });
+    }
+    if (product.image) {
+      await deleteImageFromS3(product.image.split("amazonaws.com/").pop());
+    }
+    await product.destroy();
+    res.json({ success: true });
   } catch (error) {
     console.error("Unable to connect to the database:", error);
     res.status(500).json({ message: "Server error" });

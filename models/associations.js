@@ -2,6 +2,7 @@ const { Category } = require("./Category");
 const { Product } = require("./Product");
 const { Transaction } = require("./Transaction");
 const { User } = require("./User");
+const { UserBasket } = require("./UserBasket");
 const { UserProducts } = require("./UserProducts");
 const { Withdraw } = require("./Withdraw");
 
@@ -92,10 +93,23 @@ Product.belongsToMany(User, {
   foreignKey: "productId",
 });
 
+User.belongsToMany(Product, {
+  through: "UserBasket",
+  as: "basket", // Купленные товары
+  foreignKey: "userId",
+});
+
+Product.belongsToMany(User, {
+  through: "UserBasket",
+  as: "basket_buyers", // Пользователи, которые купили продукт
+  foreignKey: "productId",
+});
+
 module.exports = {
   Category,
   Product,
   Transaction,
   User,
   UserProducts,
+  UserBasket,
 };

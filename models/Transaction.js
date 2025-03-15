@@ -19,7 +19,7 @@ const Transaction = sequelize.define(
     },
     prepareId: {
       type: DataTypes.STRING,
-    }
+    },
   },
   {
     createdAt: true,

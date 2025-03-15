@@ -4,7 +4,7 @@ const { User } = require("../models/User");
 const { sendLink } = require("../lib/mailer");
 const { hashPassword } = require("../lib/passwords");
 const authMiddleware = require("../middleware/authMiddleware");
-const { Product, Transaction } = require("../models");
+const { Product, Transaction, UserBasket } = require("../models");
 require("dotenv").config();
 
 const router = express.Router();
@@ -143,6 +143,10 @@ router.get("/me", authMiddleware, async (req, res) => {
       {
         model: Product,
         as: "purchasedProducts",
+      },
+      {
+        model: Product,
+        as: "basket",
       },
     ],
   });
