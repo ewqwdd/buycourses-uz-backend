@@ -9,6 +9,7 @@ const {
 const { default: axios } = require("axios");
 const { generateOrderId } = require("../lib/generateOrderId");
 const { AxiosError } = require("axios");
+const { APayTranssaction } = require("../models/APayTranssaction");
 require("dotenv").config();
 
 const router = express.Router();
@@ -26,12 +27,7 @@ router.post("/khati", authMiddleware, async (req, res) => {
       orderId,
     });
     const user = await User.findByPk(id);
-    const deposit = await createDepositKhati(
-      orderId,
-      amount * 1.01,
-      "Deposit",
-      user,
-    );
+    const deposit = await createDepositKhati(orderId, amount, "Deposit", user);
 
     if (deposit?.payment_url) {
       return res.json({ url: deposit.payment_url });
@@ -116,21 +112,40 @@ router.get("/khati/notify", async (req, res) => {
       where: { orderId: purchase_order_id },
     });
 
-    if (status === "Completed") {
-      transaction.status = "completed";
-      if (transaction.type === "deposit") {
-        const user = await User.findByPk(transaction.userId);
-        user.balance += transaction.amount;
-        await user.save();
+    if (transaction) {
+      if (status === "Completed") {
+        transaction.status = "completed";
+        if (transaction.type === "deposit") {
+          const user = await User.findByPk(transaction.userId);
+          user.balance += transaction.amount;
+          await user.save();
+        }
+        await transaction.save();
       }
-      await transaction.save();
+
+      return res
+        .status(200)
+        .redirect(
+          `${process.env.APP_URL}/deposit/confirmation?id=${transaction.id}`,
+        );
     }
 
-    return res
-      .status(200)
-      .redirect(
-        `${process.env.APP_URL}/deposit/confirmation?id=${transaction.id}`,
-      );
+    const aPayTransaction = await APayTranssaction.findOne({
+      where: { orderId: purchase_order_id },
+    });
+    if (aPayTransaction) {
+      if (status === "Completed") {
+        aPayTransaction.status = "completed";
+        await aPayTransaction.save();
+      }
+
+      return res
+        .status(200)
+        .redirect(
+          `${process.env.APP_URL}/deposit/a/confirmation?id=${aPayTransaction.id}`,
+        );
+    }
+    return res.redirect(process.env.APP_URL + "/404");
   } catch (error) {
     console.error("Unable to connect to the database:", error);
     res.status(500).json({ message: "Server error" });
