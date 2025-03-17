@@ -5,13 +5,14 @@ const { sendLink } = require("../lib/mailer");
 const { hashPassword } = require("../lib/passwords");
 const authMiddleware = require("../middleware/authMiddleware");
 const { Product, Transaction, UserBasket } = require("../models");
+const { UserProducts } = require("../models/UserProducts");
 require("dotenv").config();
 
 const router = express.Router();
 // Registration endpoint
 router.post("/register", async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, basket = [] } = req.body;
 
     if (!email || !password) {
       return res
@@ -31,6 +32,13 @@ router.post("/register", async (req, res, next) => {
     const hashedPassword = await hashPassword(password);
 
     const user = await User.create({ email, password: hashedPassword });
+    await UserBasket.bulkCreate(
+      basket.map((elem) => ({
+        productId: elem.id,
+        userId: user.id,
+        amount: elem.amount,
+      })),
+    );
 
     req.logIn(user, (err) => {
       if (err) {

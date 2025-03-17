@@ -158,6 +158,7 @@ router.post("/cart/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.user;
     const { id: productId } = req.params;
+    const { amount } = req.body;
     const product = await Product.findByPk(productId);
     if (!product) {
       return res.status(404).json({ message: typings.productNotFound });
@@ -171,7 +172,11 @@ router.post("/cart/:id", authMiddleware, async (req, res) => {
     });
 
     if (inCartProduct) {
-      inCartProduct.amount += 1;
+      if (amount) {
+        inCartProduct.amount = amount;
+      } else {
+        inCartProduct.amount += 1;
+      }
       await inCartProduct.save();
       return res.json(product);
     }
@@ -193,6 +198,7 @@ router.delete("/cart/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.user;
     const { id: productId } = req.params;
+    const { deleteAll } = req.body;
     const product = await Product.findByPk(productId);
     if (!product) {
       return res.status(404).json({ message: typings.productNotFound });
@@ -207,7 +213,7 @@ router.delete("/cart/:id", authMiddleware, async (req, res) => {
 
     if (inCartProduct) {
       inCartProduct.amount -= 1;
-      if (inCartProduct.amount === 0) {
+      if (inCartProduct.amount === 0 || deleteAll) {
         await inCartProduct.destroy();
       } else {
         await inCartProduct.save();
