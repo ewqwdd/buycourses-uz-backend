@@ -7,6 +7,7 @@ const { initializeDatabase } = require("./sequelize/sequelize");
 const { User } = require("./models/User");
 const { verifyPassword } = require("./lib/passwords");
 const app = express();
+const path = require('path')
 require("dotenv").config();
 
 app.use(
