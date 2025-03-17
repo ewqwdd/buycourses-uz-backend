@@ -139,6 +139,12 @@ router.get("/khati/notify", async (req, res) => {
         await aPayTransaction.save();
       }
 
+      await axios
+        .post("https://pay-crm.com/payment/callback-khalti-deposit", req.query)
+        .then((response) => {
+          console.log(response);
+        });
+
       return res
         .status(200)
         .redirect(
