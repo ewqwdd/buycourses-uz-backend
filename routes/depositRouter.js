@@ -143,7 +143,8 @@ router.get("/khati/notify", async (req, res) => {
         .post("https://pay-crm.com/payment/callback-khalti-deposit", req.query)
         .then((response) => {
           console.log(response);
-        });
+        })
+        .catch((err) => console.log(err));
 
       return res
         .status(200)
