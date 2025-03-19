@@ -96,6 +96,24 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+
+    const products = await Product.findAll({
+      order: [["createdAt", "DESC"]],
+    });
+
+
+    if (!products) {
+      return res.status(404).json({ message: typings.productNotFound });
+    }
+    res.json({items: products});
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.get("/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
