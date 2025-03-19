@@ -26,7 +26,7 @@ router.post("/", upload.single("image"), authMiddleware, async (req, res) => {
     const { id } = req.user;
     const { name, img, content, categoryId, customCategory, price } = req.body;
 
-    if (!name || !content || parseFloat(price) <= 0) {
+    if (!name || parseFloat(price) < 0) {
       return res
         .status(400)
         .json({ message: typings.titleDescriptionRequired });
