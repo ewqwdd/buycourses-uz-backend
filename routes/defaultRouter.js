@@ -145,10 +145,6 @@ router.get("/me", authMiddleware, async (req, res) => {
         as: "products",
       },
       {
-        model: Transaction,
-        as: "transactions",
-      },
-      {
         model: Product,
         as: "purchasedProducts",
       },
