@@ -140,7 +140,7 @@ router.get("/khati/notify", async (req, res) => {
       }
 
       await axios
-        .post("https://pay-crm.com/payment/callback-khalti-deposit", req.query)
+        .post(process.env.KHALTI_CALLBACK_DEPOSIT, req.query)
         .then((response) => {
           console.log(response);
         })
