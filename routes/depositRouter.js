@@ -139,6 +139,8 @@ router.get("/khati/notify", async (req, res) => {
         await aPayTransaction.save();
       }
 
+      console.log('khalti: ', req.query);
+
       await axios
         .post(process.env.KHALTI_CALLBACK_DEPOSIT, req.query)
         .then((response) => {
