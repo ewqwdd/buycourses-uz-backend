@@ -53,8 +53,8 @@ router.get("/deposit-khalti", async (req, res) => {
       },
     });
 
-    if (found && found.oaymentUrl) {
-      return res.redirect(found.oaymentUrl);
+    if (found && found.paymentUrl) {
+      return res.redirect(found.paymentUrl);
     }
     
     const transaction = await APayTranssaction.create({
