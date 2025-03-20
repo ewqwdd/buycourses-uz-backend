@@ -20,6 +20,9 @@ const APayTranssaction = sequelize.define(
     returnUrl: {
       type: DataTypes.STRING,
     },
+    paymentUrl: {
+      type: DataTypes.STRING,
+    },
   },
   {
     createdAt: true,
