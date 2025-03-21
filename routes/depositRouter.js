@@ -105,18 +105,11 @@ router.post("/notify", async (req, res) => {
 router.get('/status/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const transaction = await APayTranssaction.findOne({
-      orderId: id,
-    });
-
-    if (!transaction) {
-      return res.status(404).json({ message: 'Transaction not found' });
-    }
     
     const { data } = await axios.post(
         `${process.env.KHATI_API}/epayment/lookup/`,
         {
-          pidx: transaction.pidx,
+          pidx: id,
         },
         {
           headers: {
