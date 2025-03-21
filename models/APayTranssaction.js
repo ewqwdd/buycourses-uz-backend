@@ -23,6 +23,9 @@ const APayTranssaction = sequelize.define(
     paymentUrl: {
       type: DataTypes.STRING,
     },
+    pidx: {
+      type: DataTypes.STRING,
+    },
   },
   {
     createdAt: true,

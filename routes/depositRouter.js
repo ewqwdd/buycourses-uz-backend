@@ -102,9 +102,39 @@ router.post("/notify", async (req, res) => {
   }
 });
 
+router.get('/status/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const transaction = await APayTranssaction.findOne({
+      orderId: id,
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ message: 'Transaction not found' });
+    }
+    
+    const { data } = await axios.post(
+        `${process.env.KHATI_API}/epayment/lookup/`,
+        {
+          pidx: transaction.pidx,
+        },
+        {
+          headers: {
+            Authorization: `key ${process.env.KHATI_KEY}`,
+          },
+        },
+      );
+
+      return res.json(data);
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.get("/khati/notify", async (req, res) => {
   try {
-    const { purchase_order_id, status } = req.query;
+    const { purchase_order_id, status, pidx } = req.query;
     if (!purchase_order_id) {
       return res.status(200).send("OK");
     }
@@ -136,6 +166,7 @@ router.get("/khati/notify", async (req, res) => {
     if (aPayTransaction) {
       if (status === "Completed") {
         aPayTransaction.status = "completed";
+        aPayTransaction.pidx = pidx;
         await aPayTransaction.save();
       }
 
