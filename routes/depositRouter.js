@@ -105,7 +105,7 @@ router.post("/notify", async (req, res) => {
 router.get('/status/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+    console.log(id)
     const { data } = await axios.post(
         `${process.env.KHATI_API}/epayment/lookup/`,
         {
@@ -120,8 +120,8 @@ router.get('/status/:id', async (req, res) => {
 
       return res.json(data);
   } catch (error) {
-    console.error("Unable to connect to the database:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error(error);
+    res.status(500).json(error.response.data);
   }
 });
 
