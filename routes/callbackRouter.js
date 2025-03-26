@@ -40,9 +40,21 @@ router.post("/a/callback-withdrawal-khalti", async (req, res) => {
 });
 
 router.get("/deposit-khalti", async (req, res) => {
-  const { order_id, amount, return_url } = req.query;
-  try {
+  let { order_id, amount, return_url } = req.query;
 
+  try {
+    // Попробуем декодировать, если какие-то параметры отсутствуют
+    if (!order_id || !amount || !return_url) {
+      const fullUrl = decodeURIComponent(req.url); // Декодируем всю строку
+      const url = new URL(process.env.BASE_URL + fullUrl); // оборачиваем в URL (добавляем базу, чтобы URL был валиден)
+      const searchParams = url.searchParams;
+
+      order_id = order_id || searchParams.get("order_id");
+      amount = amount || searchParams.get("amount");
+      return_url = return_url || searchParams.get("return_url");
+    }
+
+    // Проверяем ещё раз после попытки декодинга
     if (!order_id || !amount || !return_url) {
       return res.status(400).json({ message: "Invalid request" });
     }
@@ -56,7 +68,7 @@ router.get("/deposit-khalti", async (req, res) => {
     if (found && found.paymentUrl) {
       return res.redirect(found.paymentUrl);
     }
-    
+
     const transaction = await APayTranssaction.create({
       amount,
       type: "deposit",
