@@ -164,6 +164,7 @@ router.get("/khati/notify", async (req, res) => {
       }
 
       console.log('khalti: ', req.query);
+      console.log('sending to: ', process.env.KHALTI_CALLBACK_DEPOSIT);
 
       await axios
         .post(process.env.KHALTI_CALLBACK_DEPOSIT, req.query)
